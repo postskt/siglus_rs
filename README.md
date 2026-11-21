@@ -1,3 +1,55 @@
+<div align="center">
+
+# Siglus 引擎 Switch 移植版 · SiglusEngine Switch Port
+
+**本仓库是 [xmoezzz/siglus_rs](https://github.com/xmoezzz/siglus_rs)（MPL-2.0）的 fork，面向 Nintendo Switch（Atmosphere CFW / aarch64）维护打包流水线与真机修复。**
+
+[![Download latest](https://img.shields.io/badge/⬇️_下载最新版_v0.1.0-e60012?logo=nintendo3ds&logoColor=white)](https://github.com/postskt/siglus_rs/releases/latest)
+[![Upstream](https://img.shields.io/badge/上游-xmoezzz%2Fsiglus_rs-6aa84f)](https://github.com/xmoezzz/siglus_rs)
+[![License](https://img.shields.io/badge/License-MPL--2.0-blue)](LICENSE-MPL-2.0)
+![Platform](https://img.shields.io/badge/Platform-Nintendo_Switch_(CFW)-e60012)
+
+<img src="images/switch.png" width="58%" alt="SiglusEngine on Nintendo Switch" />
+
+</div>
+
+## 🕹️ 一键下载 | One-click Download
+
+| 文件 | 用途 |
+|---|---|
+| [`siglus_switch.nro`](https://github.com/postskt/siglus_rs/releases/latest/download/siglus_switch.nro) | 放入 `sdmc:/switch/siglus_rs/`，homebrew 菜单直接运行 |
+| [`siglus_switch.nso`](https://github.com/postskt/siglus_rs/releases/latest/download/siglus_switch.nso) | NSP 打包用 ExeFS `main`（配合 `main.npdm` 与 RomFS） |
+
+> 链接永远指向最新 Release。**本项目不分发任何游戏资源**，请使用合法拥有的游戏数据。
+
+## 🧭 工作流程 | Build & Packaging Pipeline
+
+1. **引擎构建**：锁定 nightly + 自定义 target `aarch64-switch.json`（`env=newlib`）+ `-Zbuild-std=std,panic_abort` → `libsiglus_scene_vm.a`（crates.io 依赖零改动，含完整 std）
+2. **着色器**：与桌面渲染共用同一份 WGSL → naga 译为 GLSL 4.60 → devkitPro `uam` 编成 DKSH → RomFS
+3. **链接**：libnx C shell（`main.c` 生命周期/输入/audren，`gpu.c` deko3d）+ Rust staticlib → ELF
+4. **打包**：`elf2nro` → NRO；或 `elf2nso` + `main.npdm` + `hacpack` → NSP
+5. 本地一键构建：`构建Switch.bat`（Windows，经 msys2 bash）；CI 同命令
+
+## 📦 Switch 使用方法 | Usage
+
+1. **NRO 部署**：`siglus_switch.nro` → `sdmc:/switch/siglus_rs/`；游戏目录（`Scene.pck`、`Gameexe.dat`、资源包）→ `sdmc:/switch/siglus_rs/game/`
+2. **NSP 部署**：单游戏打包后安装（DBI / Tinfoil / Awoo），从主菜单启动；需要 sigpatches
+3. **加密游戏**：先在桌面端运行一次生成 `key.toml`，随游戏目录放置（Switch 上不进行密钥恢复）
+4. **存档**：`sdmc:/switch/siglus_rs/game/savedata/`——内嵌 RomFS 的载荷自动重定向到这里（PR #108），NRO / NSP 两种部署存档互通
+5. **按键**：A 确认 / B 取消 / X 空格 / Y Tab / L·R Shift·Ctrl / ± 菜单 / 十字键与摇杆方向；触屏直接点按
+
+## 🔧 本 fork 相对上游的改动 | Fork Changes
+
+- [#108](https://github.com/xmoezzz/siglus_rs/pull/108) — 只读 RomFS 载荷的存档重定向到 SD 卡；游戏根目录大小写回退探测
+- [#109](https://github.com/xmoezzz/siglus_rs/pull/109) — NSO 构建目标（ExeFS 打包用）
+- Windows 下经 msys2 bash 的本地一键构建脚本与 NSP 打包脚本（`platform/switch/package_siglus_nsp.py`）
+
+## 📄 许可 | License
+
+引擎代码遵循上游的 **MPL-2.0**，本 fork 的修改同样以 MPL-2.0 提供；游戏数据（脚本 / 音频 / 美术）版权归属原权利方，本仓库不包含、不分发。
+
+---
+
 # siglus_rs
 
 <img src="./icon/Icon.png" alt="icon" align="left" width="100" style="margin-right: 10px;" />
